@@ -13,10 +13,7 @@ const dbname = "Cluster0";
 
 const uristring = `mongodb+srv://${username}:${password}@cluster0.up9wkgf.mongodb.net/${dbname}?retryWrites=true&w=majority`;
 
-mongoose.connect(uristring, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(uristring, { useNewUrlParser: true });
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
