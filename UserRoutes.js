@@ -113,9 +113,30 @@ function getUserById(req, res, next) {
     });
 }
 
+function updateUser(req, res, next) {
+  const userId = req.params.id;
+  const updateData = req.body;
+
+  // Update the user by ID
+  UserModel.findByIdAndUpdate(userId, updateData, { new: true })
+    .then((updatedUser) => {
+      if (updatedUser) {
+        res.send(updatedUser);
+        return next();
+      } else {
+        throw new errors.NotFoundError("User not found for updating");
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      return next(new errors.InternalServerError("Error updating user"));
+    });
+}
+
 module.exports = {
   getAllUsers,
   signup,
   login,
   getUserById,
+  updateUser,
 };
