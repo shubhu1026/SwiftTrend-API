@@ -94,8 +94,28 @@ function login(req, res, next) {
     });
 }
 
+function getUserById(req, res, next) {
+  const userId = req.params.id;
+
+  // Find the user by ID
+  UserModel.findById(userId)
+    .then((user) => {
+      if (user) {
+        res.send(user);
+        return next();
+      } else {
+        throw new errors.NotFoundError("User not found");
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      return next(new errors.InternalServerError("Error fetching user by ID"));
+    });
+}
+
 module.exports = {
   getAllUsers,
   signup,
   login,
+  getUserById,
 };

@@ -42,3 +42,4 @@ server.get("/home", (req, res, next) => {
 server.get("/users", userRoutes.getAllUsers);
 server.post("/signup", userRoutes.signup);
 server.post("/login", userRoutes.login);
+server.get("/users/:id", userRoutes.getUserById);
