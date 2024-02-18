@@ -1,9 +1,9 @@
 const restify = require("restify");
-const userRoutes = require("../routes/UserRoutes");
-const productRoutes = require("../routes/ProductRoutes");
+const configureUserRoutes = require("../routes/UserRoutes");
+const configureProductRoutes = require("../routes/ProductRoutes");
 
-const configureRoutes = (server) => {
-  server.get("/home", (req, res, next) => {
+function configureRoutes(server) {
+  server.get("/", (req, res, next) => {
     try {
       res.send(200, "Server is up and running!");
       return next();
@@ -15,20 +15,11 @@ const configureRoutes = (server) => {
     }
   });
 
-  // Users routes
-  server.get("/users", userRoutes.getAllUsers);
-  server.post("/users/signup", userRoutes.signup);
-  server.post("/users/login", userRoutes.login);
-  server.get("/users/:id", userRoutes.getUserById);
-  server.post("/users/:id", userRoutes.updateUser);
+  // Configure User Routes
+  configureUserRoutes(server);
 
-  // Products routes
-  server.post("/products", productRoutes.addProduct);
-  server.get(
-    "/products/:mainCategory/:subcategory",
-    productRoutes.getProductsByCategoryAndSubcategory
-  );
-  server.get("/products", productRoutes.getAllProducts);
-};
+  // Configure Product Routes
+  configureProductRoutes(server);
+}
 
 module.exports = configureRoutes;

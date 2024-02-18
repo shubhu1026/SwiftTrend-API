@@ -1,45 +1,20 @@
-const Product = require("../models/ProductModel");
+const restify = require("restify");
+const productController = require("../controllers/ProductController");
 
-async function addProduct(req, res) {
-  try {
-    const newProduct = new Product(req.body);
-    const savedProduct = await newProduct.save();
-
-    res.status(201).json(savedProduct);
-  } catch (error) {
-    console.error("Error adding a new product:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+function configureProductRoutes(server) {
+  // Product Routes
+  server.post("/products", productController.addProduct);
+  server.get(
+    "/products/:mainCategory/:subcategory",
+    productController.getProductsByCategoryAndSubcategory
+  );
+  server.get("/products", productController.getAllProducts);
+  server.get("/products/:productId", productController.getProductByID);
+  server.get(
+    "/productDetails/:productId",
+    productController.getProductDetailsByID
+  );
+  server.get("/search", productController.searchProducts);
 }
 
-async function getProductsByCategoryAndSubcategory(req, res) {
-  const { mainCategory, subcategory } = req.params;
-
-  try {
-    const products = await Product.find({
-      mainCategory,
-      subCategory: subcategory,
-    });
-
-    res.json(products);
-  } catch (error) {
-    console.error("Error fetching products:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
-async function getAllProducts(req, res) {
-  try {
-    const products = await Product.find();
-    res.json(products);
-  } catch (error) {
-    console.error("Error fetching all products:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
-module.exports = {
-  addProduct,
-  getProductsByCategoryAndSubcategory,
-  getAllProducts,
-};
+module.exports = configureProductRoutes;

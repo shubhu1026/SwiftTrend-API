@@ -1,4 +1,3 @@
-// server.js
 const restify = require("restify");
 const config = require("./config/config");
 const configureRoutes = require("./routes/routes");
