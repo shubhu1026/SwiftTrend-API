@@ -1,5 +1,5 @@
 const errors = require("restify-errors");
-const UserModel = require("./UserModel.js");
+const UserModel = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -75,17 +75,20 @@ function login(req, res, next) {
     .then((user) => {
       // Check if the user exists and the password is correct
       if (user) {
-        return bcrypt.compare(password, user.password);
+        return bcrypt.compare(password, user.password).then((passwordMatch) => {
+          if (passwordMatch) {
+            // Send user ID along with success message
+            res.send({
+              success: "User logged in successfully",
+              userId: user._id,
+            });
+            return next();
+          } else {
+            throw new errors.UnauthorizedError("Invalid password");
+          }
+        });
       } else {
         throw new errors.UnauthorizedError("Invalid username or email");
-      }
-    })
-    .then((passwordMatch) => {
-      if (passwordMatch) {
-        res.send({ success: "User logged in successfully" });
-        return next();
-      } else {
-        throw new errors.UnauthorizedError("Invalid password");
       }
     })
     .catch((error) => {
