@@ -1,6 +1,7 @@
 const restify = require("restify");
 const configureUserRoutes = require("../routes/UserRoutes");
 const configureProductRoutes = require("../routes/ProductRoutes");
+const configureAdminRoutes = require("../routes/AdminRoutes");
 
 function configureRoutes(server) {
   server.get("/", (req, res, next) => {
@@ -20,6 +21,9 @@ function configureRoutes(server) {
 
   // Configure Product Routes
   configureProductRoutes(server);
+
+  // Configure Admin Routes
+  configureAdminRoutes(server);
 }
 
 module.exports = configureRoutes;

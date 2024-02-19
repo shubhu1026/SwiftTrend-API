@@ -3,7 +3,6 @@ const userController = require("../controllers/UserController");
 
 function configureUserRoutes(server) {
   // User Routes
-  server.get("/users", userController.getAllUsers);
   server.post("/signup", userController.signup);
   server.post("/login", userController.login);
   server.get("/users/:id", userController.getUserById);

@@ -3,20 +3,6 @@ const UserModel = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-function getAllUsers(req, res, next) {
-  console.log("GET /patients query parameters =>", req.query);
-  // Find every entity in db
-  UserModel.find({})
-    .then((Users) => {
-      // Return all of the Patients in the system
-      res.send(Users);
-      return next();
-    })
-    .catch((error) => {
-      return next(new Error(JSON.stringify(error.errors)));
-    });
-}
-
 function signup(req, res, next) {
   const {
     username,
@@ -120,8 +106,17 @@ function updateUser(req, res, next) {
   const userId = req.params.id;
   const updateData = req.body;
 
+  // Allow updates only for specific fields
+  const allowedFields = ["fullName", "contactNumber", "dateOfBirth"];
+  const filteredUpdateData = Object.keys(updateData)
+    .filter((field) => allowedFields.includes(field))
+    .reduce((obj, key) => {
+      obj[key] = updateData[key];
+      return obj;
+    }, {});
+
   // Update the user by ID
-  UserModel.findByIdAndUpdate(userId, updateData, { new: true })
+  UserModel.findByIdAndUpdate(userId, filteredUpdateData, { new: true })
     .then((updatedUser) => {
       if (updatedUser) {
         res.send(updatedUser);
@@ -137,7 +132,6 @@ function updateUser(req, res, next) {
 }
 
 module.exports = {
-  getAllUsers,
   signup,
   login,
   getUserById,
