@@ -15,27 +15,124 @@ function getAllProducts(req, res, next) {
     });
 }
 
-function createProduct(req, res, next) {
-  const { name, description, price, quantity } = req.body;
+function addProduct(req, res, next) {
+  const {
+    name,
+    brand,
+    mainCategory,
+    subCategory,
+    description,
+    price,
+    images,
+    sizes,
+    colors,
+    material,
+    gender,
+    rating,
+    availability,
+  } = req.body;
 
   // Create a new product
   const newProduct = new Product({
     name,
+    brand,
+    mainCategory,
+    subCategory,
     description,
     price,
-    quantity,
+    images,
+    sizes,
+    colors,
+    material,
+    gender,
+    rating,
+    availability,
   });
 
   // Save the product to the database
   newProduct
     .save()
     .then(() => {
-      res.send(201, { success: "Product created successfully" });
+      res.send(201, {
+        success: "Product added successfully",
+        product: newProduct,
+      });
       return next();
     })
     .catch((error) => {
       console.error(error);
-      return next(new errors.InternalServerError("Error creating product"));
+      return next(new errors.InternalServerError("Error adding product"));
+    });
+}
+
+function addMulitpleProducts(req, res, next) {
+  const productsToAdd = req.body;
+
+  // Validate that the request body is an array
+  if (!Array.isArray(productsToAdd)) {
+    return next(
+      new errors.BadRequestError(
+        "Invalid request format. Expected an array of products."
+      )
+    );
+  }
+
+  // Create an array to store the newly added products
+  const addedProducts = [];
+
+  // Iterate through each product in the array and add it to the database
+  Promise.all(
+    productsToAdd.map((productData) => {
+      const {
+        name,
+        brand,
+        mainCategory,
+        subCategory,
+        description,
+        price,
+        images,
+        sizes,
+        colors,
+        material,
+        gender,
+        rating,
+        availability,
+      } = productData;
+
+      // Create a new product
+      const newProduct = new Product({
+        name,
+        brand,
+        mainCategory,
+        subCategory,
+        description,
+        price,
+        images,
+        sizes,
+        colors,
+        material,
+        gender,
+        rating,
+        availability,
+      });
+
+      // Save the product to the database and push it to the addedProducts array
+      return newProduct.save().then((addedProduct) => {
+        addedProducts.push(addedProduct);
+      });
+    })
+  )
+    .then(() => {
+      const addedProductsCount = addedProducts.length;
+      res.send(201, {
+        success: `Added ${addedProductsCount} product(s) successfully`,
+        products: addedProducts,
+      });
+      return next();
+    })
+    .catch((error) => {
+      console.error(error);
+      return next(new errors.InternalServerError("Error adding products"));
     });
 }
 
@@ -99,10 +196,27 @@ function deleteProduct(req, res, next) {
     });
 }
 
+function deleteAllProducts(req, res, next) {
+  // Delete all products in the database
+  Product.deleteMany({})
+    .then(() => {
+      res.send({ success: "All products deleted successfully" });
+      return next();
+    })
+    .catch((error) => {
+      console.error(error);
+      return next(
+        new errors.InternalServerError("Error deleting all products")
+      );
+    });
+}
+
 module.exports = {
   getAllProducts,
-  createProduct,
+  addProduct,
+  addMulitpleProducts,
   getProductById,
   updateProduct,
   deleteProduct,
+  deleteAllProducts,
 };

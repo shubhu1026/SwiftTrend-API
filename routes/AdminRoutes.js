@@ -19,10 +19,12 @@ function configureAdminRoutes(server) {
 
   // Admin Product Routes
   server.get("/admin/products", adminProductController.getAllProducts);
-  server.post("/admin/products", adminProductController.createProduct);
+  server.post("/admin/product", adminProductController.addProduct);
+  server.post("/admin/products", adminProductController.addMulitpleProducts);
   server.get("/admin/products/:id", adminProductController.getProductById);
   server.put("/admin/products/:id", adminProductController.updateProduct);
   server.del("/admin/products/:id", adminProductController.deleteProduct);
+  server.del("/admin/products", adminProductController.deleteAllProducts);
 }
 
 module.exports = configureAdminRoutes;

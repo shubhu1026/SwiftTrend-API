@@ -3,7 +3,6 @@ const productController = require("../controllers/ProductController");
 
 function configureProductRoutes(server) {
   // Product Routes
-  server.post("/products", productController.addProduct);
   server.get(
     "/products/:mainCategory/:subcategory",
     productController.getProductsByCategoryAndSubcategory
@@ -15,6 +14,7 @@ function configureProductRoutes(server) {
     productController.getProductDetailsByID
   );
   server.get("/search", productController.searchProducts);
+  server.get("/home/products", productController.getHomeProductsData);
 }
 
 module.exports = configureProductRoutes;

@@ -1,18 +1,6 @@
 const Product = require("../models/ProductModel");
 const errors = require("restify-errors");
 
-async function addProduct(req, res) {
-  try {
-    const newProduct = new Product(req.body);
-    const savedProduct = await newProduct.save();
-
-    res.send(201, savedProduct);
-  } catch (error) {
-    console.error("Error adding a new product:", error.message);
-    res.send(500, { error: "Internal Server Error" });
-  }
-}
-
 async function getProductsByCategoryAndSubcategory(req, res) {
   const { mainCategory, subcategory } = req.params;
 
@@ -95,11 +83,70 @@ async function searchProducts(req, res) {
   }
 }
 
+async function getHomeProductsData(req, res) {
+  try {
+    // Define main categories
+    const mainCategories = ["men", "women"];
+
+    // Prepare the response object
+    const homeData = [];
+
+    // Loop through main categories
+    for (const mainCategory of mainCategories) {
+      const mainCategoryData = {};
+
+      // Define subcategories
+      const subCategories = ["accessories", "clothing", "footwear"];
+
+      // Loop through subcategories
+      for (const subCategory of subCategories) {
+        const products = await getProductsByMaincategoryAndSubcategory(
+          mainCategory,
+          subCategory
+        );
+        const subCategoryCount = products.length;
+
+        mainCategoryData[subCategory] = {
+          products: products.slice(0, 5), // Take the first 5 products
+          count: subCategoryCount,
+        };
+      }
+
+      // Add data to the response object
+      homeData.push({
+        [mainCategory]: mainCategoryData,
+      });
+    }
+
+    res.json(homeData);
+  } catch (error) {
+    console.error("Error fetching home data:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getProductsByMaincategoryAndSubcategory(
+  mainCategory,
+  subcategory
+) {
+  try {
+    const products = await Product.find({
+      mainCategory,
+      subCategory: subcategory,
+    }).select("name brand description price");
+
+    return products;
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    throw error;
+  }
+}
+
 module.exports = {
-  addProduct,
   getProductsByCategoryAndSubcategory,
   getAllProducts,
   getProductByID,
   getProductDetailsByID,
   searchProducts,
+  getHomeProductsData,
 };
