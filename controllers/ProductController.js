@@ -85,40 +85,69 @@ async function searchProducts(req, res) {
 
 async function getHomeProductsData(req, res) {
   try {
-    // Define main categories
-    const mainCategories = ["men", "women"];
-
-    // Prepare the response object
-    const homeData = [];
-
-    // Loop through main categories
-    for (const mainCategory of mainCategories) {
-      const mainCategoryData = {};
-
-      // Define subcategories
-      const subCategories = ["accessories", "clothing", "footwear"];
-
-      // Loop through subcategories
-      for (const subCategory of subCategories) {
-        const products = await getProductsByMaincategoryAndSubcategory(
-          mainCategory,
-          subCategory
-        );
-        const subCategoryCount = products.length;
-
-        mainCategoryData[subCategory] = {
-          products: products.slice(0, 5), // Take the first 5 products
-          count: subCategoryCount,
+    let schema = [
+      {
+        mainCategory: "men",
+        subCategory: [],
+      },
+      {
+        mainCategory: "women",
+        subCategory: [],
+      },
+    ];
+    const subCategories = ["accessories", "clothing", "footwear"];
+    for (let i = 0; i < schema.length; i++) {
+      for (let j = 0; j < subCategories.length; j++) {
+        let subcategorySchema = {
+          categoryName: subCategories[j],
+          products: [],
+          count: null,
         };
+        const products = await getProductsByMaincategoryAndSubcategory(
+          schema[i].mainCategory,
+          subCategories[j]
+        );
+        console.log(subcategorySchema);
+        const subCategoryCount = products.length;
+        (subcategorySchema.products = products.slice(0, 5)),
+          (subcategorySchema.count = subCategoryCount);
+        schema[i].subCategory.push(subcategorySchema);
       }
-
-      // Add data to the response object
-      homeData.push({
-        [mainCategory]: mainCategoryData,
-      });
     }
+    console.log(JSON.stringify(schema));
+    res.json(schema);
+    // Define main categories
+    // const mainCategories = ["men", "women"];
 
-    res.json(homeData);
+    // // Prepare the response object
+    // const homeData = [];
+
+    // // Loop through main categories
+    // for (const mainCategory of mainCategories) {
+    //   const mainCategoryData = {};
+
+    //   // Define subcategories
+    //   const subCategories = ["accessories", "clothing", "footwear"];
+
+    //   // Loop through subcategories
+    //   for (const subCategory of subCategories) {
+    //     const products = await getProductsByMaincategoryAndSubcategory(
+    //       mainCategory,
+    //       subCategory
+    //     );
+    //     const subCategoryCount = products.length;
+
+    //     mainCategoryData[subCategory] = {
+    //       products: products.slice(0, 5), // Take the first 5 products
+    //       count: subCategoryCount,
+    //     };
+    //   }
+
+    //   // Add data to the response object
+    //   homeData.push({
+    //     [mainCategory]: mainCategoryData,
+    //   });
+    // }
   } catch (error) {
     console.error("Error fetching home data:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
