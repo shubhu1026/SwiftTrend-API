@@ -13,7 +13,6 @@ function configureProductRoutes(server) {
     "/productDetails/:productId",
     productController.getProductDetailsByID
   );
-  server.get("/search", productController.searchProducts);
   server.get("/home/products", productController.getHomeProductsData);
 }
 

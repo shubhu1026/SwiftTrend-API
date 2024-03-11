@@ -65,24 +65,6 @@ async function getProductDetailsByID(req, res) {
   }
 }
 
-async function searchProducts(req, res) {
-  const searchTerm = req.query.q;
-
-  try {
-    const products = await Product.find({
-      $or: [
-        { name: { $regex: new RegExp(searchTerm, "i") } },
-        { brand: { $regex: new RegExp(searchTerm, "i") } },
-      ],
-    });
-
-    res.json(products);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
 async function getHomeProductsData(req, res) {
   try {
     let schema = [
@@ -116,38 +98,6 @@ async function getHomeProductsData(req, res) {
     }
     console.log(JSON.stringify(schema));
     res.json(schema);
-    // Define main categories
-    // const mainCategories = ["men", "women"];
-
-    // // Prepare the response object
-    // const homeData = [];
-
-    // // Loop through main categories
-    // for (const mainCategory of mainCategories) {
-    //   const mainCategoryData = {};
-
-    //   // Define subcategories
-    //   const subCategories = ["accessories", "clothing", "footwear"];
-
-    //   // Loop through subcategories
-    //   for (const subCategory of subCategories) {
-    //     const products = await getProductsByMaincategoryAndSubcategory(
-    //       mainCategory,
-    //       subCategory
-    //     );
-    //     const subCategoryCount = products.length;
-
-    //     mainCategoryData[subCategory] = {
-    //       products: products.slice(0, 5), // Take the first 5 products
-    //       count: subCategoryCount,
-    //     };
-    //   }
-
-    //   // Add data to the response object
-    //   homeData.push({
-    //     [mainCategory]: mainCategoryData,
-    //   });
-    // }
   } catch (error) {
     console.error("Error fetching home data:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
@@ -176,6 +126,5 @@ module.exports = {
   getAllProducts,
   getProductByID,
   getProductDetailsByID,
-  searchProducts,
   getHomeProductsData,
 };
