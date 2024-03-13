@@ -16,8 +16,13 @@ const productSchema = new mongoose.Schema(
       currency: { type: String, required: true },
     },
     images: [{ type: String, required: true }],
-    sizes: [{ type: String, enum: ["S", "M", "L", "XL", "XXL", "XXXL"] }],
-    colors: [{ type: String }],
+    productAvailability: [{
+      color: { type: String },
+      size: { type: String },
+      inStock: { type: Number },
+    }],
+    // sizes: [{ type: String, enum: ["S", "M", "L", "XL", "XXL", "XXXL"] }],
+    // colors: [{ type: String }],
     material: { type: String },
     gender: {
       type: String,
@@ -25,10 +30,7 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     rating: { type: Number },
-    availability: {
-      inStock: { type: Boolean },
-      stockCount: { type: Number },
-    },
+    // inStock: { type: Number },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

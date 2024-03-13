@@ -5,6 +5,7 @@ const connectToDatabase = require("./db/db");
 
 const server = restify.createServer({ name: config.SERVER_NAME });
 
+server.use(restify.plugins.queryParser());
 server.use(restify.plugins.fullResponse());
 server.use(restify.plugins.bodyParser());
 

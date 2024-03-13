@@ -24,12 +24,12 @@ function addProduct(req, res, next) {
     description,
     price,
     images,
-    sizes,
-    colors,
+    // sizes,
+    // colors,
     material,
     gender,
     rating,
-    availability,
+    productAvailability
   } = req.body;
 
   // Create a new product
@@ -41,13 +41,15 @@ function addProduct(req, res, next) {
     description,
     price,
     images,
-    sizes,
-    colors,
+    // sizes,
+    // colors,
     material,
     gender,
     rating,
-    availability,
+    productAvailability
   });
+
+
 
   // Save the product to the database
   newProduct
@@ -91,12 +93,12 @@ function addMulitpleProducts(req, res, next) {
         description,
         price,
         images,
-        sizes,
-        colors,
+        // sizes,
+        // colors,
         material,
         gender,
         rating,
-        availability,
+        productAvailability
       } = productData;
 
       // Create a new product
@@ -108,12 +110,12 @@ function addMulitpleProducts(req, res, next) {
         description,
         price,
         images,
-        sizes,
-        colors,
+        // sizes,
+        // colors,
         material,
         gender,
         rating,
-        availability,
+        productAvailability
       });
 
       // Save the product to the database and push it to the addedProducts array

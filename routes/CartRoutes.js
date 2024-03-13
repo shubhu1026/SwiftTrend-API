@@ -4,6 +4,7 @@ const cartController = require("../controllers/CartController");
 function configureCartRoutes(server) {
   // Cart Routes
   server.get("/cart/:userId/items", cartController.getCartItems);
+  server.get("/cart/:userId/totalCount", cartController.getCartItemsCount);
 
   server.post(
     "/cart/:userId/add/:productId/:quantity",

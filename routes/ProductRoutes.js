@@ -8,6 +8,8 @@ function configureProductRoutes(server) {
     productController.getProductsByCategoryAndSubcategory
   );
   server.get("/products", productController.getAllProducts);
+  server.get("/filteredProducts", productController.getFilteredProducts);
+  server.get("/searchProducts", productController.searchProducts);
   server.get("/products/:productId", productController.getProductByID);
   server.get(
     "/productDetails/:productId",

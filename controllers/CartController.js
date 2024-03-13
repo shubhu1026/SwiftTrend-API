@@ -1,5 +1,5 @@
 const User = require("../models/UserModel");
-
+const Product = require("../models/ProductModel");
 async function getCartItems(req, res) {
   try {
     const { userId } = req.params;
@@ -11,9 +11,40 @@ async function getCartItems(req, res) {
       res.send(404, { code: "NotFound", message: "User not found" });
       return;
     }
+    let cartSchema = []
+    for(let i=0;i<user.cart.items.length;i++){
+      let data = {
+        productId :  user.cart.items[i].product,
+        quantity : user.cart.items[i].quantity,
+        productDetails : await Product.findById(user.cart.items[i].product),
+      }
+      cartSchema.push(data)
+    }
+    res.send(200, cartSchema);
+  } catch (error) {
+    console.error("Error getting cart items:", error.message);
+    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
+  }
+}
+
+async function getCartItemsCount(req, res) {
+  try {
+    const { userId } = req.params;
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.send(404, { code: "NotFound", message: "User not found" });
+      return;
+    }
+    let totalCount = 0;
+    user.cart.items.forEach(item => {
+      totalCount += item.quantity;
+    });
 
     // Return the items in the cart
-    res.send(200, user.cart.items);
+    res.send(200, {"totalCount" : totalCount});
   } catch (error) {
     console.error("Error getting cart items:", error.message);
     res.send(500, { code: "InternalServer", message: "Internal Server Error" });
@@ -152,4 +183,5 @@ module.exports = {
   addToCart,
   removeFromCart,
   changeQuantityInCart,
+  getCartItemsCount
 };
