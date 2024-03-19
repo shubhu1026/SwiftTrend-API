@@ -1,5 +1,7 @@
 const User = require("../models/UserModel");
 const Product = require("../models/ProductModel");
+const errors = require("restify-errors");
+
 async function getCartItems(req, res) {
   try {
     const { userId } = req.params;
@@ -8,22 +10,33 @@ async function getCartItems(req, res) {
     const user = await User.findById(userId);
 
     if (!user) {
-      res.send(404, { code: "NotFound", message: "User not found" });
-      return;
+      throw new errors.NotFoundError("User not found");
     }
-    let cartSchema = []
-    for(let i=0;i<user.cart.items.length;i++){
-      let data = {
-        productId :  user.cart.items[i].product,
-        quantity : user.cart.items[i].quantity,
-        productDetails : await Product.findById(user.cart.items[i].product),
+
+    let cartSchema = [];
+    for (let i = 0; i < user.cart.items.length; i++) {
+      const cartItem = user.cart.items[i];
+      const product = await Product.findById(cartItem.product);
+
+      if (product) {
+        const data = {
+          productId: cartItem.product,
+          quantity: cartItem.quantity,
+          // Include color and size from the cart item
+          color: cartItem.color,
+          size: cartItem.size,
+          productDetails: product,
+        };
+        cartSchema.push(data);
+      } else {
+        console.warn(`Product with ID ${cartItem.product} not found.`);
       }
-      cartSchema.push(data)
     }
-    res.send(200, cartSchema);
+
+    res.send(cartSchema);
   } catch (error) {
     console.error("Error getting cart items:", error.message);
-    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
+    res.send(new errors.InternalServerError("Internal Server Error"));
   }
 }
 
@@ -35,82 +48,84 @@ async function getCartItemsCount(req, res) {
     const user = await User.findById(userId);
 
     if (!user) {
-      res.send(404, { code: "NotFound", message: "User not found" });
-      return;
+      throw new errors.NotFoundError("User not found");
     }
+
     let totalCount = 0;
-    user.cart.items.forEach(item => {
+    user.cart.items.forEach((item) => {
       totalCount += item.quantity;
     });
 
     // Return the items in the cart
-    res.send(200, {"totalCount" : totalCount});
+    res.send({ totalCount: totalCount });
   } catch (error) {
     console.error("Error getting cart items:", error.message);
-    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
+    res.send(new errors.InternalServerError("Internal Server Error"));
   }
 }
 
 async function addToCart(req, res) {
   try {
-    const { userId, productId } = req.params;
-    let { quantity } = req.params;
-
-    // Parse quantity as an integer
-    quantity = parseInt(quantity, 10);
-
-    // Find the user
-    let user = await User.findById(userId);
-
-    if (!user) {
-      res.send(404, { code: "NotFound", message: "User not found" });
-      return;
-    }
-
-    // Check if the product is already in the cart
-    const existingItem = user.cart.items.find((item) =>
-      item.product.equals(productId)
-    );
-
-    if (existingItem) {
-      // If the product is already in the cart, update the quantity
-      existingItem.quantity += quantity;
-    } else {
-      // If the product is not in the cart, add it as a new item
-      user.cart.items.push({ product: productId, quantity });
-    }
-
-    // Update the total cost
-    user.cart.total = calculateTotal(user.cart.items);
-
-    // Save the user
-    await user.save();
-
-    // Send a successful response with the updated cart
-    res.send(200, user.cart);
-  } catch (error) {
-    console.error("Error adding to cart:", error.message);
-
-    // Send an error response
-    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
-  }
-}
-
-async function removeFromCart(req, res) {
-  try {
-    const { userId, productId } = req.params;
+    const { userId, productId, quantity, color, size } = req.params;
 
     // Find the user
     const user = await User.findById(userId);
 
     if (!user) {
-      res.send(404, { code: "NotFound", message: "User not found" });
-      return;
+      throw new errors.NotFoundError("User not found");
     }
 
-    // Remove the item with the specified product id from the cart
+    // Check if the item already exists in the cart
+    let cartItem = user.cart.items.find(
+      (item) =>
+        item.product.equals(productId) &&
+        item.color === color &&
+        item.size === size
+    );
+
+    if (cartItem) {
+      // If the item already exists, update the quantity
+      cartItem.quantity += parseInt(quantity, 10);
+    } else {
+      // If the item doesn't exist, create a new cart item
+      user.cart.items.push({
+        product: productId,
+        quantity: parseInt(quantity, 10),
+        color,
+        size,
+      });
+    }
+
+    // Save the updated user
+    await user.save();
+
+    // Send a successful response with the updated cart
+    res.send(user.cart);
+  } catch (error) {
+    console.error("Error adding item to cart:", error.message);
+    res.send(new errors.InternalServerError("Internal Server Error"));
+  }
+}
+
+async function removeFromCart(req, res) {
+  try {
+    const { userId, productId, color, size } = req.params;
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new errors.NotFoundError("User not found");
+    }
+
+    // Remove the item with the specified product id, color, and size from the cart
     user.cart.items = user.cart.items.filter(
-      (item) => !item.product.equals(productId)
+      (item) =>
+        !(
+          item.product.equals(productId) &&
+          item.color === color &&
+          item.size === size
+        )
     );
 
     // Update the total cost
@@ -120,28 +135,30 @@ async function removeFromCart(req, res) {
     await user.save();
 
     // Send a successful response with the updated cart
-    res.send(200, user.cart);
+    res.send(user.cart);
   } catch (error) {
     console.error("Error removing from cart:", error.message);
-    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
+    res.send(new errors.InternalServerError("Internal Server Error"));
   }
 }
 
 async function changeQuantityInCart(req, res) {
   try {
-    const { userId, productId, newQuantity } = req.params;
+    const { userId, productId, newQuantity, color, size } = req.params;
 
     // Find the user
     const user = await User.findById(userId);
 
     if (!user) {
-      res.send(404, { code: "NotFound", message: "User not found" });
-      return;
+      throw new errors.NotFoundError("User not found");
     }
 
-    // Find the item with the specified product id in the cart
-    const itemToChange = user.cart.items.find((item) =>
-      item.product.equals(productId)
+    // Find the item with the specified product id, color, and size in the cart
+    const itemToChange = user.cart.items.find(
+      (item) =>
+        item.product.equals(productId) &&
+        item.color === color &&
+        item.size === size
     );
 
     if (itemToChange) {
@@ -149,11 +166,7 @@ async function changeQuantityInCart(req, res) {
       itemToChange.quantity = newQuantity;
     } else {
       // If the item is not found, throw an error or handle accordingly
-      res.send(404, {
-        code: "NotFound",
-        message: "Item not found in the cart",
-      });
-      return;
+      throw new errors.NotFoundError("Item not found in the cart");
     }
 
     // Update the total cost
@@ -163,10 +176,10 @@ async function changeQuantityInCart(req, res) {
     await user.save();
 
     // Send a successful response with the updated cart
-    res.send(200, user.cart);
+    res.send(user.cart);
   } catch (error) {
     console.error("Error changing quantity in cart:", error.message);
-    res.send(500, { code: "InternalServer", message: "Internal Server Error" });
+    res.send(new errors.InternalServerError("Internal Server Error"));
   }
 }
 
@@ -183,5 +196,5 @@ module.exports = {
   addToCart,
   removeFromCart,
   changeQuantityInCart,
-  getCartItemsCount
+  getCartItemsCount,
 };

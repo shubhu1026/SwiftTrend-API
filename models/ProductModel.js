@@ -16,11 +16,13 @@ const productSchema = new mongoose.Schema(
       currency: { type: String, required: true },
     },
     images: [{ type: String, required: true }],
-    productAvailability: [{
-      color: { type: String },
-      size: { type: String },
-      inStock: { type: Number },
-    }],
+    productAvailability: [
+      {
+        color: { type: String },
+        size: { type: String },
+        inStock: { type: Number },
+      },
+    ],
     // sizes: [{ type: String, enum: ["S", "M", "L", "XL", "XXL", "XXXL"] }],
     // colors: [{ type: String }],
     material: { type: String },

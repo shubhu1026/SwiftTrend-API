@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const { cartItemSchema } = require("./CartItemModel"); // Adjust the path accordingly
+const { cartItemSchema } = require("./CartItemModel");
+const { addressSchema } = require("./AddressModel");
 
 const userSchema = new mongoose.Schema({
   username: String,
@@ -9,9 +10,9 @@ const userSchema = new mongoose.Schema({
   gender: String,
   dateOfBirth: Date,
   contactNumber: String,
-  address: String,
+  addresses: [addressSchema],
   cart: {
-    items: [cartItemSchema], // Use the schema directly here
+    items: [cartItemSchema],
     total: {
       type: Number,
       default: 0,
