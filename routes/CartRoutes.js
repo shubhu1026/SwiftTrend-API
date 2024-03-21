@@ -22,6 +22,10 @@ function configureCartRoutes(server) {
     "/cart/:userId/changeQuantity/:productId/:newQuantity/:color/:size",
     cartController.changeQuantityInCart
   );
+  server.post(
+    "/:userId/addShippingAddressToCart",
+    cartController.addShippingAddressToCart
+  );
 }
 
 module.exports = configureCartRoutes;

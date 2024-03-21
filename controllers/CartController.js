@@ -244,6 +244,7 @@ async function getCart(req, res) {
       tax: tax,
       shippingFee: shippingFee,
       totalAmount: totalAmount,
+      shippingAddress: user.cart.shippingAddress
     });
   } catch (error) {
     console.error("Error getting cart items:", error.message);
@@ -287,6 +288,27 @@ function calculateShippingFee(subtotal) {
   return shippingFee;
 }
 
+async function addShippingAddressToCart(req, res) {
+  try {
+    const { userId } = req.params;
+    const address = req.body;
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new errors.NotFoundError("User not found");
+    }
+
+    user.cart.shippingAddress = address;
+    await user.save();
+    res.send(user.cart);
+  } catch (error) {
+    console.error("Error adding shipping address to cart:", error.message);
+    res.send(new errors.InternalServerError("Internal Server Error"));
+  }
+}
+
 module.exports = {
   getCart,
   addToCart,
@@ -294,4 +316,5 @@ module.exports = {
   changeQuantityInCart,
   getCartItemsCount,
   clearCart,
+  addShippingAddressToCart
 };

@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   addresses: [addressSchema],
   cart: {
     items: [cartItemSchema],
+    shippingAddress: addressSchema,
     total: {
       type: Number,
       default: 0,
