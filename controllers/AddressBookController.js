@@ -25,7 +25,7 @@ async function addAddress(req, res) {
     }
     user.addresses.push(newAddress);
     await user.save();
-    res.send(201, user.addresses); // Sending status code 201 for "Created" along with the addresses
+    res.send(201, user.addresses);
   } catch (error) {
     console.error("Error adding address:", error.message);
     res.send(new errors.InternalServerError("Internal Server Error"));

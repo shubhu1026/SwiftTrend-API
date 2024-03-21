@@ -4,6 +4,7 @@ const configureProductRoutes = require("../routes/ProductRoutes");
 const configureAdminRoutes = require("../routes/AdminRoutes");
 const configureCartRoutes = require("../routes/CartRoutes");
 const configureAddressBookRoutes = require("../routes/AddressBookRoutes");
+const configureCouponRoutes = require("../routes/CouponRoutes");
 
 function configureRoutes(server) {
   server.get("/", (req, res, next) => {
@@ -30,7 +31,11 @@ function configureRoutes(server) {
   // Configure Cart Routes
   configureCartRoutes(server);
 
+  // Configure Address Book Routes
   configureAddressBookRoutes(server);
+
+  // Configure Coupon Routes
+  configureCouponRoutes(server);
 }
 
 module.exports = configureRoutes;

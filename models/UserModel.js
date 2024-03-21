@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
       default: 0,
     },
   },
+  coupon: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Coupon",
+  },
 });
 
 const UserModel = mongoose.model("User", userSchema);
