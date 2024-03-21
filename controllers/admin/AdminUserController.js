@@ -58,7 +58,7 @@ function deleteUser(req, res, next) {
   const userId = req.params.id;
 
   // Delete the user by ID
-  UserModel.findByIdAndDelete(userId)
+  User.findByIdAndDelete(userId)
     .then((deletedUser) => {
       if (deletedUser) {
         res.send(deletedUser);
