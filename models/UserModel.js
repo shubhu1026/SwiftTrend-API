@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { cartItemSchema } = require("./CartItemModel");
 const { addressSchema } = require("./AddressModel");
+const { orderSchema } = require("./OrderModel");
 
 const userSchema = new mongoose.Schema({
   username: String,
@@ -11,6 +12,7 @@ const userSchema = new mongoose.Schema({
   dateOfBirth: Date,
   contactNumber: String,
   addresses: [addressSchema],
+  orders: [orderSchema],
   cart: {
     items: [cartItemSchema],
     shippingAddress: addressSchema,
