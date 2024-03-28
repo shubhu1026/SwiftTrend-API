@@ -5,7 +5,7 @@ const configureAdminRoutes = require("../routes/AdminRoutes");
 const configureCartRoutes = require("../routes/CartRoutes");
 const configureAddressBookRoutes = require("../routes/AddressBookRoutes");
 const configureCouponRoutes = require("../routes/CouponRoutes");
-const configurOrderRoutes = require("../routes/OrderRoutes");
+const configureOrderRoutes = require("../routes/OrderRoutes");
 
 function configureRoutes(server) {
   server.get("/", (req, res, next) => {
