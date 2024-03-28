@@ -1,5 +1,6 @@
 const errors = require("restify-errors");
 const UserModel = require("../models/UserModel");
+const AdminModel = require("../models/AdminModel");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -56,17 +57,18 @@ function signup(req, res, next) {
 function login(req, res, next) {
   const { identifier, password } = req.body;
 
-  // Find the user by username or email
-  UserModel.findOne({ $or: [{ username: identifier }, { email: identifier }] })
-    .then((user) => {
-      // Check if the user exists and the password is correct
-      if (user) {
-        return bcrypt.compare(password, user.password).then((passwordMatch) => {
+  // Check if the user is an admin
+  AdminModel.findOne({ $or: [{ username: identifier }, { email: identifier }] })
+    .then((admin) => {
+      if (admin) {
+        // Perform admin login logic
+        bcrypt.compare(password, admin.password).then((passwordMatch) => {
           if (passwordMatch) {
-            // Send user ID along with success message
+            // Send admin ID along with success message
             res.send({
-              success: "User logged in successfully",
-              userId: user._id,
+              success: "Admin logged in successfully",
+              adminId: admin._id,
+              isAdmin: true,
             });
             return next();
           } else {
@@ -74,7 +76,34 @@ function login(req, res, next) {
           }
         });
       } else {
-        throw new errors.UnauthorizedError("Invalid username or email");
+        // If user is not an admin, proceed to check if it's a regular user
+        UserModel.findOne({
+          $or: [{ username: identifier }, { email: identifier }],
+        })
+          .then((user) => {
+            if (user) {
+              // Regular user login logic
+              bcrypt.compare(password, user.password).then((passwordMatch) => {
+                if (passwordMatch) {
+                  // Send user ID along with success message
+                  res.send({
+                    success: "User logged in successfully",
+                    userId: user._id,
+                    isAdmin: false,
+                  });
+                  return next();
+                } else {
+                  throw new errors.UnauthorizedError("Invalid password");
+                }
+              });
+            } else {
+              throw new errors.UnauthorizedError("Invalid username or email");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            return next(new errors.InternalServerError("Error during login"));
+          });
       }
     })
     .catch((error) => {
