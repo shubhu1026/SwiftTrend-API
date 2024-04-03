@@ -89,6 +89,7 @@ function login(req, res, next) {
                   res.send({
                     success: "User logged in successfully",
                     userId: user._id,
+                    fullname: user.fullName,
                     isAdmin: false,
                   });
                   return next();

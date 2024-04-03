@@ -1,4 +1,3 @@
-const restify = require("restify");
 const orderController = require("../controllers/OrderController");
 
 function configurOrderRoutes(server) {

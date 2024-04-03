@@ -38,7 +38,6 @@ function configureRoutes(server) {
   // Configure Coupon Routes
   configureCouponRoutes(server);
 
-  // Configure Order Routes
   configureOrderRoutes(server);
 }
 

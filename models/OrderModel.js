@@ -34,11 +34,11 @@ const orderSchema = new mongoose.Schema({
   paymentId: String,
   status: {
     type: String,
-    enum: ["placed", "shipped", "delivered"],
+    enum: ["placed", "shipped", "delivered", "cancelled"],
     required: true,
   },
 });
 
 const OrderModel = mongoose.model("Order", orderSchema);
 
-module.exports = {OrderModel, orderSchema};
+module.exports = { OrderModel, orderSchema };
