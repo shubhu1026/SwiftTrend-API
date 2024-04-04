@@ -8,7 +8,7 @@ async function getProductsByCategoryAndSubcategory(req, res) {
     const products = await Product.find({
       mainCategory,
       subCategory: subcategory,
-    }).select("name brand description price");
+    }).select("name brand description price images");
 
     res.json(products);
   } catch (error) {
@@ -20,7 +20,7 @@ async function getProductsByCategoryAndSubcategory(req, res) {
 async function getAllProducts(req, res) {
   try {
     const products = await Product.find().select(
-      "name brand description price"
+      "name brand description price images"
     );
     res.json(products);
   } catch (error) {
@@ -33,6 +33,9 @@ async function getFilteredProducts(req, res) {
     const minPrice = parseFloat(req.query.minPrice);
     const maxPrice = parseFloat(req.query.maxPrice);
     const gender = req.query.gender;
+    const searchText = req.query.searchText;
+    const categories = req.query.categories ? req.query.categories.split(',') : [];
+    const colors = req.query.colors ? req.query.colors.split(',') : [];
     const sortBy = req.query.sortBy; // Added query parameter for sorting
 
     const query = {};
@@ -47,6 +50,21 @@ async function getFilteredProducts(req, res) {
 
     if (gender) {
       query.gender = gender;
+    }
+
+    if (categories.length > 0) {
+      query.subCategory = { $in: categories };
+    }
+
+    if (colors.length > 0) {
+      query['productAvailability.color'] = { $in: colors };
+    }
+
+    if (searchText) {
+      query.$or = [
+        { name: { $regex: new RegExp(searchText, "i") } },
+        { brand: { $regex: new RegExp(searchText, "i") } }
+      ];
     }
 
     let sortOptions = {};
@@ -109,7 +127,7 @@ async function getProductByID(req, res) {
 
   try {
     const product = await Product.findById(productId).select(
-      "name brand description price"
+      "name brand description price images"
     );
 
     if (!product) {
@@ -219,7 +237,7 @@ async function getProductsByMaincategoryAndSubcategory(
     const products = await Product.find({
       mainCategory,
       subCategory: subcategory,
-    }).select("name brand description price");
+    }).select("name brand description price images");
 
     return products;
   } catch (error) {

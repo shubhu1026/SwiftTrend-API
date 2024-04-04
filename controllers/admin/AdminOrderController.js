@@ -44,18 +44,28 @@ async function getAllOrdersForAllUsers(req, res) {
 // Controller function to edit an order status
 async function updateOrderStatus(req, res) {
   const orderId = req.params.orderId;
+  console.log("orderId:", orderId); // Log orderId to debug
+
   try {
-    // Find the order by ID
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
+    // Find the user that contains the order
+    const user = await User.findOne({ "orders._id": orderId });
+
+    if (!user) {
       throw new errors.NotFoundError("Order not found");
+    }
+
+    // Find the order within the user's orders
+    const order = user.orders.find((order) => order._id.toString() === orderId);
+
+    if (!order) {
+      throw new errors.NotFoundError("Order details not found");
     }
 
     // Update the order status
     order.status = req.body.status || order.status;
 
     // Save the updated order
-    await order.save();
+    await user.save();
 
     res.send(200, {
       success: "Order status updated successfully",
