@@ -6,6 +6,7 @@ const configureCartRoutes = require("../routes/CartRoutes");
 const configureAddressBookRoutes = require("../routes/AddressBookRoutes");
 const configureCouponRoutes = require("../routes/CouponRoutes");
 const configureOrderRoutes = require("../routes/OrderRoutes");
+const configureWishlistRoutes = require("../routes/WishlistRoutes");
 
 function configureRoutes(server) {
   server.get("/", (req, res, next) => {
@@ -39,6 +40,8 @@ function configureRoutes(server) {
   configureCouponRoutes(server);
 
   configureOrderRoutes(server);
+
+  configureWishlistRoutes(server);
 }
 
 module.exports = configureRoutes;

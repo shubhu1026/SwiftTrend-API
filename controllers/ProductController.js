@@ -36,6 +36,7 @@ async function getFilteredProducts(req, res) {
     const searchText = req.query.searchText;
     const categories = req.query.categories ? req.query.categories.split(',') : [];
     const colors = req.query.colors ? req.query.colors.split(',') : [];
+    const sizes = req.query.sizes ? req.query.sizes.split(',') : [];
     const sortBy = req.query.sortBy; // Added query parameter for sorting
 
     const query = {};
@@ -58,6 +59,10 @@ async function getFilteredProducts(req, res) {
 
     if (colors.length > 0) {
       query['productAvailability.color'] = { $in: colors };
+    }
+
+    if (sizes.length > 0) {
+      query['productAvailability.size'] = { $in: sizes };
     }
 
     if (searchText) {
