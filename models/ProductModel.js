@@ -35,6 +35,7 @@ const productSchema = new mongoose.Schema(
     // inStock: { type: Number },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    isWishlisted: { type: Boolean, default: false},
   },
   { toJSON: { virtuals: true } }
 );

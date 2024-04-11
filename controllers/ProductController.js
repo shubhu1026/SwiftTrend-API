@@ -1,4 +1,5 @@
 const Product = require("../models/ProductModel");
+const User = require("../models/UserModel");
 const errors = require("restify-errors");
 
 async function getProductsByCategoryAndSubcategory(req, res) {
@@ -9,6 +10,29 @@ async function getProductsByCategoryAndSubcategory(req, res) {
       mainCategory,
       subCategory: subcategory,
     }).select("name brand description price images");
+
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getProductsByCategoryAndSubcategory1(req, res) {
+  const { mainCategory, subcategory } = req.params;
+  const userId = req.params.userId;
+  try {
+    const products = await Product.find({
+      mainCategory,
+      subCategory: subcategory,
+    }).select("name brand description price images isWishlisted");
+
+    // Find the user
+    const user = await User.findById(userId).populate("wishlist");
+    products.forEach((element) => {
+      const isWishlisted = user.wishlist.includes(user.wishlist.find(el=>el.id=== element.id));
+      element["isWishlisted"] = isWishlisted;
+    });
 
     res.json(products);
   } catch (error) {
@@ -28,6 +52,28 @@ async function getAllProducts(req, res) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
+
+async function getAllProducts1(req, res) {
+  const userId = req.params.userId;
+  try {
+    const products = await Product.find().select(
+      "name brand description price images isWishlisted"
+    );
+
+    // Find the user
+    const user = await User.findById(userId).populate("wishlist");
+    products.forEach((element) => {
+      const isWishlisted = user.wishlist.includes(user.wishlist.find(el=>el.id=== element.id));
+      element["isWishlisted"] = isWishlisted;
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching all products:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function getFilteredProducts(req, res) {
   try {
     const minPrice = parseFloat(req.query.minPrice);
@@ -103,6 +149,96 @@ async function getFilteredProducts(req, res) {
     // Execute the query with filters and sorting
     const products = await Product.find(query).sort(sortOptions);
 
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching all products:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getFilteredProducts1(req, res) {
+  try {
+    const userId = req.params.userId;
+    const minPrice = parseFloat(req.query.minPrice);
+    const maxPrice = parseFloat(req.query.maxPrice);
+    const gender = req.query.gender;
+    const searchText = req.query.searchText;
+    const categories = req.query.categories ? req.query.categories.split(',') : [];
+    const colors = req.query.colors ? req.query.colors.split(',') : [];
+    const sizes = req.query.sizes ? req.query.sizes.split(',') : [];
+    const sortBy = req.query.sortBy; // Added query parameter for sorting
+
+    const query = {};
+
+    if (!isNaN(minPrice)) {
+      query['price.amount'] = { $gte: minPrice };
+    }
+
+    if (!isNaN(maxPrice)) {
+      query['price.amount'] = { ...query['price.amount'], $lte: maxPrice };
+    }
+
+    if (gender) {
+      query.gender = gender;
+    }
+
+    if (categories.length > 0) {
+      query.subCategory = { $in: categories };
+    }
+
+    if (colors.length > 0) {
+      query['productAvailability.color'] = { $in: colors };
+    }
+
+    if (sizes.length > 0) {
+      query['productAvailability.size'] = { $in: sizes };
+    }
+
+    if (searchText) {
+      query.$or = [
+        { name: { $regex: new RegExp(searchText, "i") } },
+        { brand: { $regex: new RegExp(searchText, "i") } }
+      ];
+    }
+
+    let sortOptions = {};
+
+    // Define sorting options based on query parameter
+    switch (sortBy) {
+      case 'priceHighToLow':
+        sortOptions = { 'price.amount': -1 };
+        break;
+      case 'priceLowToHigh':
+        sortOptions = { 'price.amount': 1 };
+        break;
+      case 'nameAToZ':
+        sortOptions = { name: 1 };
+        break;
+      case 'nameZToA':
+        sortOptions = { name: -1 };
+        break;
+      case 'ratingHighToLow':
+        sortOptions = { rating: -1 };
+        break;
+      case 'ratingLowToHigh':
+        sortOptions = { rating: 1 };
+        break;
+      default:
+        // Default sorting by createdAt in descending order
+        sortOptions = { createdAt: -1 };
+        break;
+    }
+
+    // Execute the query with filters and sorting
+    const products = await Product.find(query).sort(sortOptions);
+
+    // Find the user
+    const user = await User.findById(userId).populate("wishlist");
+    products.forEach((element) => {
+      const isWishlisted = user.wishlist.includes(user.wishlist.find(el=>el.id=== element.id));
+      element["isWishlisted"] = isWishlisted;
+    });
+    
     res.json(products);
   } catch (error) {
     console.error("Error fetching all products:", error.message);
@@ -194,6 +330,62 @@ async function getProductDetailsByID(req, res) {
   }
 }
 
+async function fetchProductDetailsByID(req, res) {
+  const productId = req.params.productId;
+  const userId = req.params.userId;
+
+  try {
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Find the user
+    const user = await User.findById(userId).populate("wishlist");
+
+  // Filter out items with zero stock
+    const availableItems = product.productAvailability.filter(item => item.inStock > 0);
+
+    // Extract unique sizes
+    const uniqueSizes = [...new Set(availableItems.map(item => item.size))];
+
+    // Extract unique colors
+    const uniqueColors = [...new Set(availableItems.map(item => item.color))];
+
+    // Calculate total stock count
+    const totalStockCount = availableItems.reduce((total, item) => total + item.inStock, 0);
+
+    const isWishlisted = user.wishlist.includes(user.wishlist.find(el=>el.id===productId));
+    
+    const productDetails = {
+      _id: product._id,
+      name: product.name,
+      brand: product.brand,
+      mainCategory: product.mainCategory,
+      subCategory: product.subCategory,
+      description: product.description,
+      price: product.price,
+      images: product.images,
+      isWishlisted: isWishlisted,
+      material: product.material,
+      gender: product.gender,
+      rating: product.rating,
+      productAvailability : product.productAvailability,
+      sizes: uniqueSizes,
+      colors: uniqueColors,
+      inStock: totalStockCount,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
+
+    res.json(productDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 
 async function getHomeProductsData(req, res) {
   try {
@@ -253,10 +445,14 @@ async function getProductsByMaincategoryAndSubcategory(
 
 module.exports = {
   getProductsByCategoryAndSubcategory,
+  getProductsByCategoryAndSubcategory1,
   getAllProducts,
+  getAllProducts1,
   getProductByID,
   getProductDetailsByID,
+  fetchProductDetailsByID,
   getHomeProductsData,
   getFilteredProducts,
+  getFilteredProducts1,
   searchProducts
 };
